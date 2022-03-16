@@ -1786,6 +1786,14 @@ impl DecoratorStatement {
 			stmt,
         }
     }
+	/// Get Expression
+	pub fn expr(self) -> Option<Expression> {
+		self.expr
+	}
+	/// Get Statement
+	pub fn stmt(self) -> Box<Stmt> {
+		self.stmt
+	}
 }
 
 impl fmt::Display for DecoratorStatement {
