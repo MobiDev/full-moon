@@ -234,6 +234,7 @@ create_visitor!(ast: {
     visit_if => If,
     visit_index => Index,
     visit_local_assignment => LocalAssignment,
+    visit_decorator_statement => DecoratorStatement,
     visit_local_function => LocalFunction,
     visit_last_stmt => LastStmt,
     visit_method_call => MethodCall,

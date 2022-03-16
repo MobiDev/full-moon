@@ -442,6 +442,24 @@ impl VisitMut for LocalAssignment {
     }
 }
 
+impl Visit for DecoratorStatement {
+	fn visit<V: Visitor>(&self, visitor: &mut V) {
+			visitor.visit_decorator_statement(self);
+
+			self.expr.visit(visitor);
+			visitor.visit_decorator_statement_end(self);
+	}
+}
+
+impl VisitMut for DecoratorStatement {
+	fn visit_mut<V: VisitorMut>(mut self, visitor: &mut V) -> Self {
+			self = visitor.visit_decorator_statement(self);
+			self.expr = self.expr.visit_mut(visitor);
+			self = visitor.visit_decorator_statement_end(self);
+			self
+	}
+}
+
 impl Visit for GenericFor {
     fn visit<V: Visitor>(&self, visitor: &mut V) {
         visitor.visit_generic_for(self);

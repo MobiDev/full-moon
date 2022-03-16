@@ -21,6 +21,7 @@ symbols!(
     If => "if",
     In => "in",
     Local => "local",
+    At => "@",
     Nil => "nil",
     Not => "not",
     Or => "or",
@@ -714,6 +715,12 @@ peg::parser! {
               }}
             / expected!("identifier")
 
+				pub(super) rule luappatt() -> RawToken
+            = "@" 
+						{
+							TokenType::Symbol { symbol: Symbol::At }.into()
+						}
+
         pub(super) rule comment() -> RawToken
             = "--" v:multi_line_block()
               { TokenType::MultiLineComment { blocks: v.0, comment: v.1.into() }.into() }
@@ -1084,6 +1091,15 @@ mod tests {
         );
 
         test_rule!(identifier("123"), TokenizerErrorType::UnexpectedToken('1'));
+    }
+
+		#[test]
+    fn test_rule_luappatt() {
+        test_rule!(
+					luappatt("@"),
+            TokenType::Symbol { symbol: Symbol::At } 
+        );
+
     }
 
     #[test]

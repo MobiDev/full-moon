@@ -367,6 +367,9 @@ pub enum Stmt {
     /// A local assignment, such as `local x = 1`
     #[display(fmt = "{}", _0)]
     LocalAssignment(LocalAssignment),
+		/// A local assignment, such as `local x = 1`
+		#[display(fmt = "{}", _0)]
+		DecoratorStatement(DecoratorStatement),
     /// A local function declaration, such as `local function x() end`
     #[display(fmt = "{}", _0)]
     LocalFunction(LocalFunction),
@@ -1764,6 +1767,43 @@ impl fmt::Display for LocalAssignment {
             display_option(&self.equal_token),
             self.expr_list
         )
+    }
+}
+
+/// An assignment to a local variable, such as `local x = 1`
+#[derive(Clone, Debug, PartialEq, Node)]
+#[cfg_attr(feature = "serde", derive(Deserialize, Serialize))]
+pub struct DecoratorStatement {
+    expr: Option<Expression>,
+	stmt: Box<Stmt>,
+}
+
+impl DecoratorStatement {
+    /// Returns a new LocalAssignment from the given name list
+    pub fn new(expr: Option<Expression>, stmt: Box<Stmt> ) -> Self {
+        Self {
+            expr,
+			stmt,
+        }
+    }
+}
+
+impl fmt::Display for DecoratorStatement {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        match &self.expr {
+            Some(expr) => {
+                write!(
+                    formatter,
+                    "@{}{}",
+                    expr,
+                    self.stmt
+                )
+            }
+            None => {
+                write!(formatter, "{}", self.stmt)
+            }
+        }
+                
     }
 }
 

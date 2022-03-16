@@ -10,7 +10,7 @@ use super::types::*;
 #[cfg(feature = "lua52")]
 use super::lua52::*;
 
-use crate::tokenizer::{TokenKind, TokenReference, TokenType};
+use crate::{tokenizer::{TokenKind, TokenReference, TokenType}, visitors::{Visitor, VisitMut, VisitorMut}};
 
 use std::borrow::Cow;
 
@@ -379,6 +379,7 @@ define_parser!(ParseStmt, Stmt, |_, state| parse_first_of!(state, {
     ParseFunctionDeclaration => Stmt::FunctionDeclaration,
     ParseLocalFunction => Stmt::LocalFunction,
     ParseLocalAssignment => Stmt::LocalAssignment,
+		ParseDecoratorStatement => Stmt::DecoratorStatement,
     @#[cfg(feature = "roblox")]
     ParseCompoundAssignment => Stmt::CompoundAssignment,
     @#[cfg(feature = "roblox")]
@@ -980,6 +981,48 @@ define_parser!(ParseLocalAssignment, LocalAssignment, |_, state| {
             name_list,
             equal_token,
             expr_list,
+        },
+    ))
+});
+
+#[derive(Clone, Debug, Default, PartialEq)]
+struct ParseDecoratorStatement;
+define_parser!(ParseDecoratorStatement, DecoratorStatement, |_, state| {
+    let (mut state, local_token) = ParseSymbol(Symbol::At).parse(state)?;
+
+
+    // let ((state, expr_list), equal_token) = match ParseSymbol(Symbol::Equal).parse(state) {
+    //     Ok((state, equal_token)) => (
+    //         OneOrMore(ParseExpression, ParseSymbol(Symbol::Comma), false)
+    //             .parse(state)
+    //             .map_err(|_| InternalAstError::UnexpectedToken {
+    //                 token: (*state.peek()).to_owned(),
+    //                 additional: Some(Cow::from("expected expression")),
+    //             })?,
+    //         Some(equal_token),
+    //     ),
+    //     Err(InternalAstError::NoMatch) => ((state, Punctuated::new()), None),
+    //     Err(other) => return Err(other),
+    // };
+
+		let (state, expr) = match ParseExpression.parse(state) {
+			Ok((state,expr))=>(state,expr),
+      Err(other) => return Err(other),
+		};
+
+		let (state, stmt) = match ParseStmt.parse(state) {
+			Ok((state,stmt))=>{
+				let b_stmt = Box::new(stmt);
+				(state, b_stmt)
+			},
+      Err(other) => return Err(other),
+		};
+
+    Ok((
+        state,
+        DecoratorStatement {
+            expr: Some(expr),
+            stmt,
         },
     ))
 });
